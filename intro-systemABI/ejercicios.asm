@@ -33,35 +33,36 @@ alternate_sum_4:
 
 ; uint32_t strLen(char* a)
 ; Retorna la cantidad de caracteres distintos de cero del string pasado por parámetro. 
-; registros: a[??]
+; Además, en clase agregamos llamados a printf en cada ciclo para practicar llamar funciones de C desde ASM y uso de registros no volátiles.
+; registros: a[RDI]
 strLen:
-    ;SIEMPRE está desalineada la pila al comienzo de la función (x convención de llamada)
-    push rbp ;pila queda alineada a 16 bytes
+    ;SIEMPRE está desalineada la pila al comienzo de la función (x convención de llamada, antes de hacer CALL strLen la pila estaba alineada, y CALL hizo PUSH RIP lo cual la desalinea)
+    push rbp      ;pila queda alineada a 16 bytes
     mov rbp, rsp 
-    push r12
-    push r13
-    mov r12, rdi ;guardo char* a
+    push r12      ;desalineada
+    push r13      ;alineada (importante porque vamos a hacer CALL)
+    mov r12, rdi  ;r12 = char* a
+    xor r13, r13  ;r13 = contador que indica el caracter actual/cuantos caracteres leímos
 
-    ; rdi = char* a
-    xor r13, r13 ;r13 = contador que indica el caracter actual/cuantos caracteres leimos
-
-    ;xor rdx, rdx
     .loop:
-        ; if current_char == 0
-        mov rdi, r12
-        call printf wrt ..plt
-        
+        mov rdi, r12 ; Cargamos parámetro de printf
+        call printf wrt ..plt ;wrt ..plt es "magia" por si aparece error relacionado a -fPIE. Ver video de clase para explicación
+        ; Revisamos si terminamos de recorrer la lista
         cmp byte [r12 + r13], 0        
-        ;xor [rdi + r13], rdx
-        je .fin ;mismo opcode que jz
-        inc r13
+            ; Alternativa: si tenemos un registro vacío, podemos hacer xor o cmp contra registro vacío
+            ; xor rdx, rdx
+            ; xor [rdi + r13], rdx ;En principio trabajar con registros es mas barato que trabajar con una constante en memoria (como es 0)
+        ; Nos fijamos si terminamos de recorrer la string
+        je .fin ;equivalente a jz .fin, tienen el mismo opcode
+        ; Si aún no encontramos el 0 al final de la string seguimos recorriendo
+        inc r13 ;equivalente a add r13, 1
         jmp .loop
 
     .fin:
-    ; rax=8, eax=4, ax=2, al,ah=1
-    mov eax, r13d
-    
+    ; Guardo el resultado
+    mov eax, r13d ;valor de retorno es de 32 bits
+    ; Restauro los valores originales a los registros no volátiles + vacío la pila
     pop r13
     pop r12
     pop rbp
-	ret
+	ret ;RIP de la función llamadora debe estar en el tope de la pila
