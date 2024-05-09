@@ -9,10 +9,7 @@ OBJS := ejercicios.o
 
 main: main.c $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
-
-tester.o: tester.c checkpoints.h test-utils.h
-	$(CC) $(CFLAGS) -c $< -o $@
-
+	
 ejercicios.o: ejercicios.asm
 	$(NASM) $(NASMFLAGS) $< -o $@
 
