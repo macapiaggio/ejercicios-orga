@@ -71,6 +71,8 @@ Por lo que la direcció queda descompuesta:
 0 0 1 0 1 0 1
 ```
 
+![Diagrama cache del ejercicio](diagrama_cache_ej.png)
+
 #### Memoria
 Por lo tanto, la memoria queda subdividida del siguiente modo:
 
